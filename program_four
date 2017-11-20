@@ -1,0 +1,102 @@
+.data
+
+str1:	.asciiz "Enter list size: "
+str2:	.asciiz "Enter temperature: "
+str3:	.asciiz "Enter temperature to search: "
+Found:	.asciiz "Temperature found"
+notFound:.asciiz "Temperature not found"
+result: .word 0
+counter: .word 0
+size:	.word 0
+temp_list: .word 0
+item:	.word 0
+.text
+
+# Prompt message for input from the user for size
+la $a0, str1
+add $v0, $0, 4
+syscall
+add $v0, $0, 5
+syscall
+
+# Save input to variable size
+sw $v0, size
+
+# Allocate space for list
+lw $t0, size
+addi $t1, $0, 4
+mul $t2, $t1, $t0
+
+add $a0, $t2, $t1
+add $v0, $0, 9
+syscall
+
+# save list address to the variable temp_list
+sw $v0, temp_list
+
+# while counter < size:
+#	temp_list[counter] = int(input("Enter size: "))
+while:
+lw $t0, counter
+lw $t1, size
+bge $t0, $t1, endWhile
+
+la $a0, str2
+add $v0, $0, 4
+syscall
+add $v0, $0, 5
+syscall
+
+lw $t2, temp_list
+add $t3, $0, 4
+mul $t4, $t3, $t0
+add $t4, $t4, $t3
+add $t4, $t4, $t2
+sw $v0, ($t4)
+add $t0, $t0, 1
+sw $t0, counter
+j while
+
+# Ask user for item to search:
+endWhile:
+la $a0, str3 
+add $v0, $0, 4
+syscall
+add $v0, $0, 5
+syscall
+sw $v0, item
+
+addi $t0, $0, 0
+la $a0, notFound
+sw $a0, result
+
+# Search item in temp_list
+search:
+lw $s2, item
+lw $t1, temp_list
+lw $s1, size
+bge $t0, $s1, print_search
+add $t3, $0, 4 
+mul $t4, $t3, $t0
+add $t4, $t4, $t3
+add $t4, $t4, $t1
+lw $t5, ($t4)
+beq $t5, $s2, found
+add $t0, $t0, 1
+j search
+
+# If found, change result = "Temp found"
+found:
+la $a0, Found
+sw $a0, result
+
+# else print "Temp not found" 
+print_search:
+lw $a0, result
+add $v0, $0, 4
+syscall
+
+#exit code
+exit:
+add $v0, $0, 10
+syscall
